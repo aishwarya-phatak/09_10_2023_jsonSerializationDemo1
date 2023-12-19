@@ -9,10 +9,24 @@ import UIKit
 
 class ViewController: UIViewController {
 
+    @IBOutlet weak var postTableView: UITableView!
     var posts : [Post] = []
+    private let postTableViewCellIdentifier = "PostTableViewCell"
     override func viewDidLoad() {
         super.viewDidLoad()
         fetchData()
+        initializeTableView()
+        registerXIBWithTableView()
+    }
+    
+    func initializeTableView(){
+        postTableView.delegate = self
+        postTableView.dataSource = self
+    }
+    
+    func registerXIBWithTableView(){
+        let uiNib = UINib(nibName: postTableViewCellIdentifier, bundle: nil)
+        self.postTableView.register(uiNib, forCellReuseIdentifier: postTableViewCellIdentifier)
     }
     
     func fetchData(){
@@ -46,7 +60,32 @@ class ViewController: UIViewController {
                                       body: postBody)
                 self.posts.append(postObject)
             }
+            
+            DispatchQueue.main.async {
+                self.postTableView.reloadData()
+            }
         }
         dataTask.resume()
+    }
+}
+
+extension ViewController : UITableViewDataSource{
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        posts.count
+    }
+    
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let postTableViewCell = self.postTableView.dequeueReusableCell(withIdentifier: postTableViewCellIdentifier, for: indexPath) as! PostTableViewCell
+        postTableViewCell.postUserIdLabel.text = String(posts[indexPath.row].userId)
+        postTableViewCell.postTitleLabel.text = posts[indexPath.row].title
+        postTableViewCell.postBodyLabel.text = posts[indexPath.row].body
+        
+        return postTableViewCell
+    }
+}
+
+extension ViewController : UITableViewDelegate{
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        return 120.0
     }
 }
